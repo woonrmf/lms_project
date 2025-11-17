@@ -1,0 +1,30 @@
+<html layout:decorate="~{layout}">
+	<div layout:fragment="content" class="main-content mt-5">
+		<div class="col-md-9 col-lg-7 mx-auto">
+			<h1 th:text="${quiz.course.title}">강좌이름</h1>
+			<h2 th:text="${quiz.title}">퀴즈 제목</h2>
+   				<p>총점 : <span th:text="${quiz.totalpoint}">0</span></p>
+
+    <form th:action="@{|/quiz/test/${quiz.quizno}|}" method="post">
+		<div th:each="q, iterStat : ${quizQuestion}">
+		    <div class="quiz-question">
+		        <p>
+		            <strong>문제 <span th:text="${iterStat.index + 1}">1</span>:</strong>
+		            <span th:text="${q.content}">문제 내용</span>
+		            (배점: <span th:text="${q.point}">0</span>)
+		        </p>
+		        <label>
+		            <input type="radio" th:name="'answer' + ${q.quizquestionno}" value="O"/> O
+		        </label>
+		        <label>
+		            <input type="radio" th:name="'answer' + ${q.quizquestionno}" value="X"/> X
+		        </label>
+		    </div>
+		    <hr/>
+		</div>
+        <button type="submit">제출</button>
+    </form>
+	
+		</div>
+	</div>
+</html>
