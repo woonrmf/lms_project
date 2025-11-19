@@ -174,6 +174,7 @@ public class MemberController {
 	    memberForm.setCellnum(member.getCellnum());
 	    memberForm.setBirth(member.getBirth());
 	    memberForm.setEmail(member.getEmail());
+	    memberForm.setSchoolName(member.getSchoolName());
 
 	    model.addAttribute("관리자", isAdmin);
 	    model.addAttribute("memberno", memberno);
@@ -223,7 +224,7 @@ public class MemberController {
 	    }
 
 	    //  일반 정보 업데이트 (Role과 Pwd를 제외한 필드만 서비스에 전달)
-	    ms.modify(memberno, memberForm.getName(), memberForm.getCellnum(), memberForm.getBirth(), memberForm.getEmail());
+	    ms.modify(memberno, memberForm.getName(), memberForm.getCellnum(), memberForm.getBirth(), memberForm.getEmail(), memberForm.getSchoolName());
 
 	    if (member.getMemberid().equals(currentMemberid)) {
 	        // 본인이 수정했을 경우: 마이페이지 경로로 리다이렉트 

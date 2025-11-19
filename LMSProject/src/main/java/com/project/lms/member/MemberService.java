@@ -113,13 +113,18 @@ public class MemberService {
 		}
 	}
 
-	public void modify(Integer memberno, String name, String cellnum, String birth, String email) {
+	public void modify(Integer memberno, String name, String cellnum, String birth, String email, String schoolName) {
 		Member m = getMember(memberno);
 		m.setName(name);
 		m.setCellnum(cellnum);
 		m.setBirth(birth);
 		m.setEmail(email);
 		m.setModDate(LocalDateTime.now());
+		
+		if(m.getRole().getValue() == 2) {
+			m.setSchoolName(schoolName);
+		}
+		
 		mr.save(m);
 	}
 	

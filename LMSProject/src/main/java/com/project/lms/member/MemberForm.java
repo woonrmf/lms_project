@@ -27,6 +27,8 @@ public class MemberForm {
 	
 	private String role;
 	
+	private String schoolName;
+	
 	@Email
 	private String email;
 
