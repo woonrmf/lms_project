@@ -1,7 +1,6 @@
 package com.project.lms.review;
 
 import java.security.Principal;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,8 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.project.lms.apply.ApplyService;
 import com.project.lms.course.Course;
 import com.project.lms.course.CourseService;
-import com.project.lms.lesson.Lesson;
-import com.project.lms.lesson.LessonService;
 import com.project.lms.member.Member;
 import com.project.lms.member.MemberService;
 
@@ -34,9 +31,9 @@ public class ReviewController {
 
 	private final ReviewService reviewService;
 	private final CourseService courseService;
-	private final LessonService lessonService;
 	private final MemberService memberService;
 	private final ApplyService applyService;
+	private final ReviewRepository reviewRepository;
 
 	@GetMapping("/list")
 	public String list(Model model, @RequestParam(value="page", defaultValue = "0") int page) {
@@ -63,7 +60,7 @@ public class ReviewController {
 	//등록폼 
 	@GetMapping("/create/{courseno}")
 	public String reviewCreate(ReviewForm reviewForm, Model model, Principal principal, 
-			@PathVariable("courseno") Integer courseno) { //강좌에 속한 강의를 불러오기 위해 courseno 추가
+			@PathVariable("courseno") Integer courseno) {
 		
 		// 로그인한 사용자
 		Member member = memberService.getMember(principal.getName());
@@ -76,9 +73,13 @@ public class ReviewController {
 	        return "redirect:/course/detail/" + courseno;
 	    }
 	    
-		List<Lesson> lessonList = lessonService.getLessonByCourse(course); //강좌 속 강의 리스트 가져오기
+	    boolean alreadyReviewed = reviewRepository.existsByMemberAndCourse(member, course);
+	    if (alreadyReviewed) {
+	    	model.addAttribute("errorMessage", "이미 리뷰를 작성했습니다.");
+	    	return "redirect:/course/detail/" + courseno + "?reviewError";
+	    }
+	    
 		model.addAttribute("course", course);
-		model.addAttribute("lessonList", lessonList);
 		return "review/reviewCreateTest";
 	}
 	
@@ -90,7 +91,6 @@ public class ReviewController {
 		if(bindingResult.hasErrors()) {
 			Course course = courseService.getCourse(reviewForm.getCourseno());
 			model.addAttribute("course", course);
-			model.addAttribute("lessonList", lessonService.getLessonByCourse(course));
 			return "review/reviewCreateTest";
 		}
 		
@@ -99,26 +99,21 @@ public class ReviewController {
 		//Lesson lesson = lessonService.getLesson(questionForm.getLessonno()); 강의 선택 필수 일때 이 코드 사용
 		
 		// 수강 여부 다시 한 번 확인 (보안상)
-	    boolean isEnrolled = applyService.isEnrolled(member, course);
-	    if (!isEnrolled) {
-	        model.addAttribute("errorMessage", "수강신청하지 않은 강좌에는 리뷰를 작성할 수 없습니다.");
+	    try {
+	        // ⭐ 서비스에서 검증 + 저장 처리
+	        reviewService.createReview(
+	                member,
+	                course,
+	                reviewForm.getContent(),
+	                reviewForm.getRating()
+	        );
+	    } catch (IllegalStateException e) {
+	        // 이미 작성했거나 수강하지 않은 경우
+	        model.addAttribute("errorMessage", e.getMessage());
 	        return "redirect:/course/detail/" + courseno;
 	    }
-	    
-		//강의 선택 안해도 질문 가능하게 하기
-		Lesson lesson = null;
-		if(reviewForm.getLessonno() != null) {
-			lesson = lessonService.getLesson(reviewForm.getLessonno());
-		}
-			
-		reviewService.create(reviewForm.getContent(), member, lesson, course, reviewForm.getRating());
-			
-		if(lesson != null) {
-			Integer courseNo = lesson.getCourse().getCourseno(); //등록 후 courseno 디테일로 보내기
-			return "redirect:/course/detail/"+courseNo;
-		} else {
-			return "redirect:/course/detail/"+reviewForm.getCourseno(); 
-		}
+
+	    return "redirect:/course/detail/" + courseno;
 	}
 	
 	//수정

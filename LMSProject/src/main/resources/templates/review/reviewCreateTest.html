@@ -6,9 +6,9 @@
 		<div th:replace="~{form_errors :: formErrorsFragment}"></div>
          <div class="mb-3">
 			<div class="mb-3">
-			    <label for="lessonno" class="form-label">강의명</label>
+			    <label for="lessonno" class="form-label">강좌명</label>
 				<div class="alert alert-secondary d-flex justify-content-between align-items-center mb-4">
-				<h5><span class="badge bg-primary me-2" th:text="${course.title}">[강좌 제목]</span></h5>
+				<h5><span th:text="${course.title}">[강좌 제목]</span></h5>
 				</div>
 				
 			</div>

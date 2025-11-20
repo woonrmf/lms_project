@@ -61,7 +61,8 @@ public class ReviewService {
         return reviewRepository.findByCourse(course);
     }
     
-    public void createReview(Member member, Course course, String content) {
+    //생성
+    public void createReview(Member member, Course course, String content, Integer rating) {
         // 수강신청 여부 확인
         boolean isEnrolled = applyRepository.existsByMemberAndCourseAndStatus(member, course, 1);
         if (!isEnrolled) {
@@ -73,19 +74,16 @@ public class ReviewService {
         if (alreadyReviewed) {
             throw new IllegalStateException("이미 리뷰를 작성한 강좌입니다.");
         }
-    }
-    
-    public void create(String content, Member member, Lesson lesson, Course course, Integer rating) {
+        
 		Review review = new Review();
 		review.setContent(content);
 		review.setCredate(LocalDateTime.now());
 		review.setModdate(LocalDateTime.now());
 		review.setMember(member);
-		review.setLesson(lesson);
 		review.setCourse(course);
 		review.setRating(rating);
 		reviewRepository.save(review);
-	}
+    }
     
     public void modify(Review review, Integer rating, String content) {
 		review.setRating(rating);
