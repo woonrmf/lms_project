@@ -14,10 +14,12 @@
 					<div th:text="${#temporals.format(question.credate, 'yyyy-MM-dd HH:mm')}"></div>
 				</div>
 			</div>
-			<div sec:authorize="hasRole('ADMIN') or hasRole('USER')" class="my-3">
-				<a th:href="@{|/question/modify/${question.questionno}|}"
+			<div sec:authorize="isAuthenticated()" class="my-3">
+				<a th:if="${#authentication.name == question.member.memberid or #authorization.expression('hasRole(''ADMIN'')')}"
+					th:href="@{|/question/modify/${question.questionno}|}"
 					class="btn btn-sm btn-outline-secondary">수정</a>
-				<form th:action="@{|/question/delete/${question.questionno}|}" method="post" style="display:inline;"
+				<form th:if="${#authentication.name == question.member.memberid or #authorization.expression('hasRole(''ADMIN'')')}"
+					th:action="@{|/question/delete/${question.questionno}|}" method="post" style="display:inline;"
 					class="delete-form">
 					<button type="submit" class="btn btn-sm btn-outline-secondary">삭제</button>
 				</form>
@@ -47,11 +49,15 @@
 					<div th:text="${#temporals.format(answer.credate, 'yyyy-MM-dd HH:mm')}"></div>
 				</div>
 
-				<div sec:authorize="hasRole('INSTRUCTOR')or hasRole('ADMIN')" class="ms-2">
-					<button type="button" class="btn btn-sm btn-outline-secondary edit-btn">수정</button>
-					<form th:action="@{|/answer/delete/${answer.answerno}|}" method="post" style="display:inline;"
-						class="delete-form">
-						<button type="submit" class="btn btn-sm btn-outline-secondary">삭제</button>
+				<!-- 작성자가 본인이고, 역할이 INSTRUCTOR 또는 ADMIN인 경우 -->
+				<div th:if="${#authentication.name == answer.member.memberid}" class="ms-2">
+					<button type="button" class="btn btn-sm btn-outline-secondary edit-btn">
+						수정
+					</button>
+					<form th:action="@{|/answer/delete/${answer.answerno}|}" method="post" style="display:inline;">
+						<button type="submit" class="btn btn-sm btn-outline-secondary">
+							삭제
+						</button>
 					</form>
 				</div>
 			</div>

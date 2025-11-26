@@ -2,6 +2,7 @@ package com.project.lms.course;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.project.lms.apply.Apply;
 import com.project.lms.apply.ApplyService;
 import com.project.lms.category.Category;
 import com.project.lms.category.CategoryRepository;
 import com.project.lms.category.CategoryService;
 import com.project.lms.member.Member;
 import com.project.lms.member.MemberService;
+import com.project.lms.progress.ProgressService;
 import com.project.lms.question.Question;
 import com.project.lms.question.QuestionService;
 import com.project.lms.review.Review;
@@ -39,12 +42,14 @@ public class CourseController {
 	private final QuestionService questionService;
 	private final ReviewService reviewService;	
 	private final ApplyService applyService;
+	private final ProgressService progressService;
 
 	// 전체 강좌 목록 조회 (카테고리별 리스트와 모든 강좌보기를 courselist 하나의 뷰에 구현)
 	@GetMapping("/list")
 	public String list(Model model, @RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "kw", required = false) String kw,
-			@RequestParam(value = "categoryno", required = false) Integer categoryno) {
+			@RequestParam(value = "categoryno", required = false) Integer categoryno,
+			@RequestParam(value = "courseno", required = false) Integer courseno) {
 
 		Category category = null; // 기본 null
 
@@ -73,6 +78,7 @@ public class CourseController {
 		model.addAttribute("categoryno", null);
 		model.addAttribute("categoryName", null);
 
+		
 		return "course/course_list";
 	}
 
@@ -125,7 +131,44 @@ public class CourseController {
 		// 뷰 템플릿 이름은 'course_list'를 재활용하거나 'instructor_course_list' 등을 사용할 수 있습니다.
 		return "course/course_instructor_list";
 	}
+	
+	@GetMapping("/instructor/members")
+	@PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+	public String instructorMembers(
+	        @RequestParam(value = "courseName", required = false) String courseName,
+	        Model model,
+	        Principal principal) {
 
+	    // 로그인한 강사
+	    Member instructor = memberService.getMember(principal.getName());
+
+	    // 강사가 올린 모든 강좌 조회
+	    List<Course> courses = courseService.getCoursesByInstructor(instructor);
+
+	    List<Apply> applies;
+
+	    if (courseName == null || courseName.isEmpty()) {
+	        applies = courses.stream()
+	                         .flatMap(course -> course.getApplyList().stream())
+	                         .filter(apply -> apply.getStatus() == 1)
+	                         .toList();
+	    } else {
+	        applies = courses.stream()
+	                         .filter(course -> course.getTitle().toLowerCase().contains(courseName.toLowerCase()))
+	                         .flatMap(course -> course.getApplyList().stream())
+	                         .filter(apply -> apply.getStatus() == 1)
+	                         .toList();
+	    }
+
+	    // 진행률 계산
+	    Map<String, Double> progressRates = progressService.getProgressRatesForCoursesForMembers(applies);
+
+	    model.addAttribute("applies", applies);
+	    model.addAttribute("progressRates", progressRates);
+
+	    return "course/course_all_members";
+	}
+	
 	// 상세조회
 		@GetMapping("/detail/{courseno}")
 		public String detail(Model model, @PathVariable("courseno") Integer courseno, Principal principal) {
@@ -239,10 +282,16 @@ public class CourseController {
 	// 삭제
 	@PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
 	@PostMapping("/delete/{courseno}")
-	public String courseDelete(@PathVariable("courseno") Integer courseno) {
+	public String courseDelete(@PathVariable("courseno") Integer courseno, Model model) {
 		Course course = courseService.getCourse(courseno);
-		Integer categoryno = course.getCategory().getCategoryno();
-		courseService.delete(course);
-		return "redirect:/course/list";
+		
+		try {
+			courseService.delete(course);
+		} catch (IllegalStateException e) {
+			model.addAttribute("errorMessage", e.getMessage());
+			model.addAttribute("course", course);
+			return "redirect:/course/instructor/list";
+		}
+		return "redirect:/course/instructor/list";
 	}
 }

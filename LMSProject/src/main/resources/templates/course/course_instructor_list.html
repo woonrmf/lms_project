@@ -2,6 +2,13 @@
 	<div layout:fragment="content" class="main-content mt-5">
 		<div class="col-xl-10 col-lg-11 mx-auto">
 			<h1 class="mb-5 text-center">나의 강좌</h1>
+			
+			<div class="text-center mb-4">
+			    <a th:href="@{/course/instructor/members}" 
+			       class="btn btn-sm btn-outline-primary">
+			       전체 회원 리스트 보기
+			    </a>
+			</div>
 
 			<div th:if="${paging.isEmpty()}" class="alert alert-warning text-center mx-auto mb-5" style="max-width: 800px;" role="alert">
 			    <i class="bi bi-info-circle me-2"></i> 
@@ -40,6 +47,7 @@
 							        <form th:action="@{|/course/delete/${course.courseno}|}" 
 							              method="post" 
 							              class="m-0 d-inline"
+										  th:if="${#lists.isEmpty(course.applyList)}"
 							              onsubmit="return confirm('정말 이 강좌를 삭제하시겠습니까?');">
 							            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
 							        </form>

@@ -124,7 +124,7 @@ public class ReviewController {
 		String loginMember = principal.getName();
 		Member member = memberService.getMember(loginMember);
 		boolean isAdmin = member.getRole().name().equals("ADMIN");
-		boolean isMember = review.getMember().getName().equals(loginMember);
+		boolean isMember = review.getMember().getMemberid().equals(loginMember);
 			
 		if(!isAdmin && !isMember) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정 권한이 없습니다.");
@@ -144,7 +144,7 @@ public class ReviewController {
 		String loginMember = principal.getName();
 		Member member = memberService.getMember(loginMember);
 		boolean isAdmin = member.getRole().name().equals("ADMIN");
-		boolean isMember = review.getMember().getName().equals(loginMember);
+		boolean isMember = review.getMember().getMemberid().equals(loginMember);
 			
 		if(!isAdmin && !isMember) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정 권한이 없습니다.");
@@ -161,7 +161,7 @@ public class ReviewController {
 		String loginMember = principal.getName();
 		Member member = memberService.getMember(loginMember);
 		boolean isAdmin = member.getRole().name().equals("ADMIN");
-		boolean isMember = review.getMember().getName().equals(loginMember);
+		boolean isMember = review.getMember().getMemberid().equals(loginMember);
 			
 		if(!isAdmin && !isMember) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제 권한이 없습니다.");
