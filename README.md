@@ -2,6 +2,7 @@
 
 초등학생을 위한 **온라인 학습 관리 시스템(LMS)** 프로젝트입니다.  
 자기 주도 학습 능력을 기르고, 공교육·사교육을 보조할 수 있는 온라인 학습 환경을 제공합니다.
+(EBS 초등 웹 사이트 벤치마킹)
 
 ### 🔗 Service URL
 <a href="https://lms.wooon.store" target="_blank" rel="noopener noreferrer">
